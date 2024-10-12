@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scale Your List</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables and Resets */
+        :root {
+            --primary-color: #333;
+            --background-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --hover-color: #f1f3f5;
+            --accent-color: #007bff;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            line-height: 1.6;
+            height: 100%;
+        }
+        /* Container and Layout Styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: calc(100% - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .sign-out {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+        .content {
+            flex-grow: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 2rem;
+        }
+        .content.active {
+            display: flex;
+        }
+        /* Enrichment Box Styles */
+        .enrichment-box {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .enrichment-box:hover {
+            background-color: var(--hover-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .enrichment-text {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        /* Upload Container Styles */
+        .upload-container {
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        .upload-text {
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        #csvFile {
+            display: none;
+        }
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            background-color: white;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+        .drop-zone.dragover {
+            background-color: var(--hover-color);
+            border-color: var(--accent-color);
+        }
+        .drop-zone:hover {
+            background-color: var(--hover-color);
+        }
+        .drop-zone p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        /* Enrichment Options Styles */
+        .enrichment-options {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        .option {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .option:hover {
+            background-color: var(--hover-color);
+        }
+        .option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            width: 100%;
+        }
+        .option input[type="checkbox"] {
+            margin-right: 1rem;
+            pointer-events: none; /* Allow label to handle clicks */
+        }
+        .button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .button:hover {
+            background-color: #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        /* Message Styles */
+        #message {
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .success { color: var(--success-color); }
+        .error { color: var(--error-color); }
+        /* Sign-In Form Styles */
+        .sign-in-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .sign-in-form input {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .sign-in-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+        }
+        /* Remove File Button Styles */
+        .remove-file {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .remove-file:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scale Your List</h1>
+            <a class="sign-out" onclick="signOut()">Sign Out</a>
+        </header>
+
+        <!-- Sign-In View -->
+        <div id="signInView" class="content">
+            <h1>Sign In</h1>
+            <div class="sign-in-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button class="button" onclick="signIn()">Sign In</button>
+            </div>
+        </div>
+
+        <!-- Initial View -->
+        <div id="initialView" class="content">
+            <h1>Your Enrichment Options</h1>
+            <div class="enrichment-box" onclick="navigateTo('uploadView', true)">
+                <div class="enrichment-text">Enrich Your List</div>
+                <span>&gt;</span>
+            </div>
+        </div>
+
+        <!-- Upload View -->
+        <div id="uploadView" class="content">
+            <h1>Upload CSV File</h1>
+            <div class="upload-container">
+                <div class="upload-text">Click or drag and drop your CSV file below</div>
+                <div class="drop-zone" id="dropZone" onclick="triggerFileInput()">
+                    <p>Click or Drag & Drop CSV File Here</p>
+                </div>
+                <input type="file" id="csvFile" accept=".csv" onchange="handleFileSelect(this)">
+                <button class="remove-file" onclick="removeFile()" style="display: none;">Remove File</button>
+            </div>
+        </div>
+
+        <!-- Enrichment Options View -->
+        <div id="enrichmentView" class="content">
+            <h1>Select Enrichment Options</h1>
+            <div class="enrichment-options">
+                <div class="option" onclick="toggleCheckbox(this)">
+                    <label>
+                        <input type="checkbox" name="enrichment" value="verification">
+                        Verification
+                    </label>
+                </div>
+                <div class="option" onclick="toggleCheckbox(this)">
+                    <label>
+                        <input type="checkbox" name="enrichment" value="icpAndThingCompanyDoes">
+                        ICP + Thing Company Does
+                    </label>
+                </div>
+                <button class="button" onclick="uploadFile()">Start Enrichment</button>
+            </div>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const views = ['signInView', 'initialView', 'uploadView', 'enrichmentView'];
+        const sessionTimeout = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+        function signIn() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (username && password) {
+                const loginTime = Date.now();
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('loginTime', loginTime);
+                navigateTo('initialView', true);
+            } else {
+                showMessage('Please enter both username and password.', 'error');
+            }
+        }
+
+        function signOut() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('loginTime');
+            navigateTo('signInView', true);
+        }
+
+        function navigateTo(viewId, addToHistory = false) {
+            if (addToHistory) {
+                history.pushState({ view: viewId }, null, '#' + viewId);
+            }
+            updateView(viewId);
+        }
+
+        function updateView(viewId) {
+            // Check for session timeout
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const loginTime = localStorage.getItem('loginTime');
+            if (isLoggedIn && loginTime) {
+                const currentTime = Date.now();
+                if (currentTime - loginTime > sessionTimeout) {
+                    signOut();
+                    showMessage('Session expired. Please sign in again.', 'error');
+                    return;
+                }
+            }
+
+            views.forEach(view => {
+                const element = document.getElementById(view);
+                if (view === viewId) {
+                    element.classList.add('active');
+                } else {
+                    element.classList.remove('active');
+                }
+            });
+            document.querySelector('.sign-out').style.display = localStorage.getItem('isLoggedIn') ? 'block' : 'none';
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            const fileName = file.name;
+            document.querySelector('.upload-text').textContent = `Selected File: ${fileName}`;
+            document.querySelector('.remove-file').style.display = 'inline-block';
+            navigateTo('enrichmentView', true);
+        }
+
+        function removeFile() {
+            const fileInput = document.getElementById('csvFile');
+            fileInput.value = '';
+            document.querySelector('.upload-text').textContent = 'Click or drag and drop your CSV file below';
+            document.querySelector('.remove-file').style.display = 'none';
+            navigateTo('uploadView', true);
+        }
+
+        function triggerFileInput() {
+            document.getElementById('csvFile').click();
+        }
+
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                        document.getElementById('csvFile').files = files;
+                        processFile(file);
+                    } else {
+                        showMessage('Please upload a valid CSV file.', 'error');
+                    }
+                }
+            });
+        }
+
+        function toggleCheckbox(optionElement) {
+            const checkbox = optionElement.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showMessage('Please select a CSV file.', 'error');
+                return;
+            }
+
+            if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                showMessage('Please select a valid CSV file.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const enrichmentOptions = document.querySelectorAll('input[name="enrichment"]:checked');
+            const selectedOptions = Array.from(enrichmentOptions).map(option => option.value);
+            formData.append('enrichmentOptions', JSON.stringify(selectedOptions));
+
+            try {
+                // Replace 'YOUR_API_ENDPOINT' with your actual API endpoint
+                const response = await axios.post('YOUR_API_ENDPOINT', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                showMessage('File uploaded and enrichment process started!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.message === 'Network Error') {
+                    showMessage('Unable to connect to the server. Please check your internet connection and try again.', 'error');
+                } else if (error.response) {
+                    showMessage(`Error: ${error.response.data.message || 'An unexpected error occurred.'}`, 'error');
+                } else if (error.request) {
+                    showMessage('No response received from the server. Please try again later.', 'error');
+                } else {
+                    showMessage('An unexpected error occurred. Please try again.', 'error');
+                }
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+        }
+
+        // Handle browser navigation
+        window.onpopstate = function(event) {
+            const viewId = event.state ? event.state.view : 'signInView';
+            updateView(viewId);
+        };
+
+        // Initialize the page
+        window.onload = function() {
+            setupDragAndDrop();
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const loginTime = localStorage.getItem('loginTime');
+
+            // Determine initial view based on login state and URL hash
+            let initialView = 'signInView';
+            if (isLoggedIn && loginTime) {
+                const currentTime = Date.now();
+                if (currentTime - loginTime > sessionTimeout) {
+                    signOut();
+                    showMessage('Session expired. Please sign in again.', 'error');
+                } else {
+                    if (location.hash && views.includes(location.hash.substring(1))) {
+                        initialView = location.hash.substring(1);
+                    } else {
+                        initialView = 'initialView';
+                    }
+                }
+            }
+
+            // Replace the current history state with the initial view
+            history.replaceState({ view: initialView }, null, '#' + initialView);
+            updateView(initialView);
+        };
+    </script>
+</body>
+</html>
