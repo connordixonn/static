@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scale Your List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scale Your List</h1>
+            <a class="sign-out" onclick="signOut()" style="display: none;">Sign Out</a>
+        </header>
+
+        <!-- Sign-In View -->
+        <div id="signInView" class="content active">
+            <h1>Sign In</h1>
+            <div class="sign-in-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button class="button" onclick="signIn()">Sign In</button>
+            </div>
+        </div>
+
+        <!-- Initial View -->
+        <div id="initialView" class="content">
+            <h1>Your Enrichment Options</h1>
+            <div class="enrichment-box" onclick="navigateTo('uploadView', true)">
+                <div class="enrichment-text">Enrich Your List</div>
+                <span>&gt;</span>
+            </div>
+        </div>
+
+        <!-- Upload View -->
+        <div id="uploadView" class="content">
+            <h1>Upload CSV File</h1>
+            <div class="upload-container">
+                <div class="upload-text">Click or drag and drop your CSV file below</div>
+                <div class="drop-zone" id="dropZone" onclick="triggerFileInput()">
+                    <p>Click or Drag & Drop CSV File Here</p>
+                </div>
+                <input type="file" id="csvFile" accept=".csv" onchange="handleFileSelect(this)">
+                <button class="remove-file" onclick="removeFile()" style="display: none;">Remove File</button>
+            </div>
+        </div>
+
+        <!-- Enrichment Options View -->
+        <div id="enrichmentView" class="content">
+            <h1>Select Enrichment Options</h1>
+            <div class="enrichment-options">
+                <div class="option">
+                    <label>
+                        <input type="radio" name="enrichment" value="list">
+                        List Verification <br>(Million Verifier + GPT Enrichment)
+                    </label>
+                </div>
+                <div class="option">
+                    <label>
+                        <input type="radio" name="enrichment" value="full">
+                        Full Verification <br> (List Verification + ICP + Thing Company Does)
+                    </label>
+                </div>
+                <button class="button" onclick="uploadFile()">Start Enrichment</button>
+            </div>
+        </div>
+
+        <div id="message"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
